@@ -1,3 +1,3 @@
-module github.com/Mzack9999/gostruct
+module github.com/projectdiscovery/gostruct
 
 go 1.19
