@@ -1,10 +1,11 @@
 package gostruct
 
 // Package binary_pack performs conversions between some Go values represented as byte slices.
-// 	This can be used in handling binary data stored in files or from network connections,
-// 	among other sources. It uses format slices of strings as compact descriptions of the layout
-// 	of the Go structs.
-// 	Format characters (some characters like H have been reserved for future implementation of unsigned numbers):
+// This can be used in handling binary data stored in files or from network connections,
+// among other sources. It uses format slices of strings as compact descriptions of the layout
+// of the C structs.
+//
+// 	Format characters
 // 		? - bool, packed size 1 byte
 //		> - big endian
 //		< - little endian
@@ -56,6 +57,12 @@ func Pack(format []string, msg []interface{}) ([]byte, error) {
 			endianess = LITTLE_ENDIAN
 		case ">":
 			endianess = BIG_ENDIAN
+		case "b", "B":
+			casted_value, ok := msg[i].(int)
+			if !ok {
+				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (int, 2 bytes)")
+			}
+			res = append(res, intToBytes(casted_value, 1, endianess)...)
 		case "?":
 			casted_value, ok := msg[i].(bool)
 			if !ok {
@@ -124,7 +131,7 @@ func UnPack(format []string, msg []byte) ([]interface{}, error) {
 	}
 
 	if expected_size > len(msg) {
-		return nil, errors.New("Expected size is bigger than actual size of message")
+		return nil, errors.New("expected size is bigger than actual size of message")
 	}
 
 	res := []interface{}{}
@@ -137,6 +144,12 @@ func UnPack(format []string, msg []byte) ([]interface{}, error) {
 			endianess = BIG_ENDIAN
 		case "?":
 			res = append(res, bytesToBool(msg[:1], endianess))
+			msg = msg[1:]
+		case "b":
+			res = append(res, bytesToInt(msg[:1], endianess))
+			msg = msg[1:]
+		case "B":
+			res = append(res, bytesToUint(msg[:1]))
 			msg = msg[1:]
 		case "h", "H":
 			res = append(res, bytesToInt(msg[:2], endianess))
@@ -177,6 +190,8 @@ func CalcSize(format []string) (int, error) {
 			// unused
 		case "?":
 			size = size + 1
+		case "b", "B":
+			size++
 		case "h", "H":
 			size = size + 2
 		case "i", "I", "l", "L", "f":
@@ -209,7 +224,18 @@ func bytesToBool(b []byte, endianess Endianess) bool {
 
 func intToBytes(n int, size int, endianess Endianess) []byte {
 	buf := bytes.NewBuffer([]byte{})
-	binary.Write(buf, endianess.ByteOrder(), int64(n))
+
+	switch size {
+	case 1:
+		binary.Write(buf, binary.LittleEndian, int8(n))
+	case 2:
+		binary.Write(buf, binary.LittleEndian, int16(n))
+	case 4:
+		binary.Write(buf, binary.LittleEndian, int32(n))
+	default:
+		binary.Write(buf, binary.LittleEndian, int64(n))
+	}
+
 	return buf.Bytes()[0:size]
 }
 
@@ -260,4 +286,27 @@ func bytesToFloat64(b []byte, endianess Endianess) float64 {
 	buf := bytes.NewBuffer(b)
 	binary.Read(buf, endianess.ByteOrder(), &x)
 	return x
+}
+
+func bytesToUint(b []byte) int {
+	buf := bytes.NewBuffer(b)
+
+	switch len(b) {
+	case 1:
+		var x uint8
+		binary.Read(buf, binary.LittleEndian, &x)
+		return int(x)
+	case 2:
+		var x uint16
+		binary.Read(buf, binary.LittleEndian, &x)
+		return int(x)
+	case 4:
+		var x uint32
+		binary.Read(buf, binary.LittleEndian, &x)
+		return int(x)
+	default:
+		var x uint64
+		binary.Read(buf, binary.LittleEndian, &x)
+		return int(x)
+	}
 }
