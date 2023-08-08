@@ -227,13 +227,13 @@ func intToBytes(n int, size int, endianess Endianess) []byte {
 
 	switch size {
 	case 1:
-		binary.Write(buf, binary.LittleEndian, int8(n))
+		_ = binary.Write(buf, binary.LittleEndian, int8(n))
 	case 2:
-		binary.Write(buf, binary.LittleEndian, int16(n))
+		_ = binary.Write(buf, binary.LittleEndian, int16(n))
 	case 4:
-		binary.Write(buf, binary.LittleEndian, int32(n))
+		_ = binary.Write(buf, binary.LittleEndian, int32(n))
 	default:
-		binary.Write(buf, binary.LittleEndian, int64(n))
+		_ = binary.Write(buf, binary.LittleEndian, int64(n))
 	}
 
 	return buf.Bytes()[0:size]
@@ -264,7 +264,7 @@ func bytesToInt(b []byte, endianess Endianess) int {
 
 func float32ToBytes(n float32, size int, endianess Endianess) []byte {
 	buf := bytes.NewBuffer([]byte{})
-	binary.Write(buf, endianess.ByteOrder(), n)
+	_ = binary.Write(buf, endianess.ByteOrder(), n)
 	return buf.Bytes()[0:size]
 }
 
@@ -277,7 +277,7 @@ func bytesToFloat32(b []byte, endianess Endianess) float32 {
 
 func float64ToBytes(n float64, size int, endianess Endianess) []byte {
 	buf := bytes.NewBuffer([]byte{})
-	binary.Write(buf, endianess.ByteOrder(), n)
+	_ = binary.Write(buf, endianess.ByteOrder(), n)
 	return buf.Bytes()[0:size]
 }
 
