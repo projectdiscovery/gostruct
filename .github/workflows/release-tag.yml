@@ -1,4 +1,4 @@
-name: 🔖 Auto release gh action
+name: 🔖 Release Tag
 
 on:
   workflow_dispatch:
