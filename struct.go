@@ -245,19 +245,19 @@ func bytesToInt(b []byte, endianess Endianess) int {
 	switch len(b) {
 	case 1:
 		var x int8
-		binary.Read(buf, endianess.ByteOrder(), &x)
+		_ = binary.Read(buf, endianess.ByteOrder(), &x)
 		return int(x)
 	case 2:
 		var x int16
-		binary.Read(buf, endianess.ByteOrder(), &x)
+		_ = binary.Read(buf, endianess.ByteOrder(), &x)
 		return int(x)
 	case 4:
 		var x int32
-		binary.Read(buf, endianess.ByteOrder(), &x)
+		_ = binary.Read(buf, endianess.ByteOrder(), &x)
 		return int(x)
 	default:
 		var x int64
-		binary.Read(buf, endianess.ByteOrder(), &x)
+		_ = binary.Read(buf, endianess.ByteOrder(), &x)
 		return int(x)
 	}
 }
@@ -271,7 +271,7 @@ func float32ToBytes(n float32, size int, endianess Endianess) []byte {
 func bytesToFloat32(b []byte, endianess Endianess) float32 {
 	var x float32
 	buf := bytes.NewBuffer(b)
-	binary.Read(buf, endianess.ByteOrder(), &x)
+	_ = binary.Read(buf, endianess.ByteOrder(), &x)
 	return x
 }
 
@@ -284,7 +284,7 @@ func float64ToBytes(n float64, size int, endianess Endianess) []byte {
 func bytesToFloat64(b []byte, endianess Endianess) float64 {
 	var x float64
 	buf := bytes.NewBuffer(b)
-	binary.Read(buf, endianess.ByteOrder(), &x)
+	_ = binary.Read(buf, endianess.ByteOrder(), &x)
 	return x
 }
 
@@ -294,19 +294,19 @@ func bytesToUint(b []byte) int {
 	switch len(b) {
 	case 1:
 		var x uint8
-		binary.Read(buf, binary.LittleEndian, &x)
+		_ = binary.Read(buf, binary.LittleEndian, &x)
 		return int(x)
 	case 2:
 		var x uint16
-		binary.Read(buf, binary.LittleEndian, &x)
+		_ = binary.Read(buf, binary.LittleEndian, &x)
 		return int(x)
 	case 4:
 		var x uint32
-		binary.Read(buf, binary.LittleEndian, &x)
+		_ = binary.Read(buf, binary.LittleEndian, &x)
 		return int(x)
 	default:
 		var x uint64
-		binary.Read(buf, binary.LittleEndian, &x)
+		_ = binary.Read(buf, binary.LittleEndian, &x)
 		return int(x)
 	}
 }
