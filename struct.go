@@ -43,74 +43,79 @@ func (e Endianess) ByteOrder() binary.ByteOrder {
 // Return a byte slice containing the values of msg slice packed according to the given format.
 // The items of msg slice must match the values required by the format exactly.
 func Pack(format []string, msg []interface{}) ([]byte, error) {
-	if len(format) > len(msg) {
-		return nil, errors.New("Format is longer than values to pack")
-	}
-
 	res := []byte{}
 
 	endianess := LITTLE_ENDIAN
+	var msgIdx int
 
-	for i, f := range format {
+	for _, f := range format {
 		switch f {
 		case "<":
 			endianess = LITTLE_ENDIAN
-		case ">":
+		case ">", "!":
 			endianess = BIG_ENDIAN
 		case "b", "B":
-			casted_value, ok := msg[i].(int)
+			castedValue, ok := msg[msgIdx].(int)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (int, 2 bytes)")
 			}
-			res = append(res, intToBytes(casted_value, 1, endianess)...)
+			res = append(res, intToBytes(castedValue, 1, endianess)...)
+			msgIdx++
 		case "?":
-			casted_value, ok := msg[i].(bool)
+			castedValue, ok := msg[msgIdx].(bool)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (bool)")
 			}
-			res = append(res, boolToBytes(casted_value, endianess)...)
+			res = append(res, boolToBytes(castedValue, endianess)...)
+			msgIdx++
 		case "h", "H":
-			casted_value, ok := msg[i].(int)
+			castedValue, ok := msg[msgIdx].(int)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (int, 2 bytes)")
 			}
-			res = append(res, intToBytes(casted_value, 2, endianess)...)
+			res = append(res, intToBytes(castedValue, 2, endianess)...)
+			msgIdx++
 		case "i", "I", "l", "L":
-			casted_value, ok := msg[i].(int)
+			castedValue, ok := msg[msgIdx].(int)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (int, 4 bytes)")
 			}
-			res = append(res, intToBytes(casted_value, 4, endianess)...)
+			res = append(res, intToBytes(castedValue, 4, endianess)...)
+			msgIdx++
 		case "q", "Q":
-			casted_value, ok := msg[i].(int)
+			castedValue, ok := msg[msgIdx].(int)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (int, 8 bytes)")
 			}
-			res = append(res, intToBytes(casted_value, 8, endianess)...)
+			res = append(res, intToBytes(castedValue, 8, endianess)...)
+			msgIdx++
 		case "f":
-			casted_value, ok := msg[i].(float32)
+			castedValue, ok := msg[msgIdx].(float32)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (float32)")
 			}
-			res = append(res, float32ToBytes(casted_value, 4, endianess)...)
+			res = append(res, float32ToBytes(castedValue, 4, endianess)...)
+			msgIdx++
 		case "d":
-			casted_value, ok := msg[i].(float64)
+			castedValue, ok := msg[msgIdx].(float64)
 			if !ok {
 				return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (float64)")
 			}
-			res = append(res, float64ToBytes(casted_value, 8, endianess)...)
+			res = append(res, float64ToBytes(castedValue, 8, endianess)...)
+			msgIdx++
 		default:
 			if strings.Contains(f, "s") {
-				casted_value, ok := msg[i].(string)
+				castedValue, ok := msg[msgIdx].(string)
 				if !ok {
 					return nil, errors.New("Type of passed value doesn't match to expected '" + f + "' (string)")
 				}
 				n, _ := strconv.Atoi(strings.TrimRight(f, "s"))
 				res = append(res, []byte(fmt.Sprintf("%s%s",
-					casted_value, strings.Repeat("\x00", n-len(casted_value))))...)
+					castedValue, strings.Repeat("\x00", n-len(castedValue))))...)
 			} else {
 				return nil, errors.New("Unexpected format token: '" + f + "'")
 			}
+			msgIdx++
 		}
 	}
 
@@ -227,13 +232,13 @@ func intToBytes(n int, size int, endianess Endianess) []byte {
 
 	switch size {
 	case 1:
-		_ = binary.Write(buf, binary.LittleEndian, int8(n))
+		_ = binary.Write(buf, endianess.ByteOrder(), int8(n))
 	case 2:
-		_ = binary.Write(buf, binary.LittleEndian, int16(n))
+		_ = binary.Write(buf, endianess.ByteOrder(), int16(n))
 	case 4:
-		_ = binary.Write(buf, binary.LittleEndian, int32(n))
+		_ = binary.Write(buf, endianess.ByteOrder(), int32(n))
 	default:
-		_ = binary.Write(buf, binary.LittleEndian, int64(n))
+		_ = binary.Write(buf, endianess.ByteOrder(), int64(n))
 	}
 
 	return buf.Bytes()[0:size]
